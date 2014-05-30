@@ -1,0 +1,24 @@
+{
+  "name": "decanat-zero",
+  "version": "0.0.0",
+  "description": "decanat-zero ============",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/decanat/decanat-zero.git"
+  },
+  "author": "Mushex Antaranian",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/decanat/decanat-zero/issues"
+  },
+  "homepage": "https://github.com/decanat/decanat-zero",
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "premiss": "git+ssh://git@github.com:decanat/premiss.git",
+    "zepto": "git+ssh://git@github.com:decanat/zepto.git"
+  }
+}
