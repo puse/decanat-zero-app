@@ -4,14 +4,14 @@
 <head>
     <meta charset="utf-8">
 
-    <title> Positronic Tests </title>
+    <title> Decanat.js Tests </title>
 
     <link rel="stylesheet" media="all" href="vendor/mocha.css">
 
     <script src="vendor/mocha.js"></script>
     <script src="vendor/chai.js"></script>
 
-    <script src="../dist/bundle.js"></script>
+    <script src="decanat.js"></script>
 </head>
 
 <body>
@@ -23,7 +23,11 @@
     </script>
     <script type="text/javascript" src="specs.js"></script>
     <script>
-        mochaPhantomJS.run();
+        if (!window.mochaPhantomJS) {
+            mocha.run();
+        } else {
+            mochaPhantomJS.run();
+        }
     </script>
 </body>
 

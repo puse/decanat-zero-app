@@ -32,11 +32,15 @@ gulp.task('test', ['build'], function(){
 
 gulp.task('build', function(){
 
-    var bndl = builder('./index.js').bundle();
+    var bndl = builder('./index.js').bundle({ debug: true });
 
     bndl.pipe(stream('bundle.js'))
         .pipe(buffer())
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(gulp.dest('./dist/'))
         .pipe(size());
+});
+
+gulp.task('watch', function(){
+    gulp.watch('./lib/**/*.js', ['build', 'test']);
 });

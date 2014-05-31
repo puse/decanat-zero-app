@@ -19,6 +19,18 @@
   "dependencies": {
     "lodash": "^2.4.1",
     "premiss": "git+ssh://git@github.com:decanat/premiss.git",
-    "zepto": "git+ssh://git@github.com:decanat/zepto.git"
+    "zepto": "git+ssh://git@github.com:decanat/zepto.git",
+    "emitter-component": "^1.1.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.6.2",
+    "gulp-jshint": "^1.6.1",
+    "gulp-mocha-phantomjs": "^0.2.2",
+    "gulp-uglify": "^0.3.0",
+    "gulp-rename": "^1.2.0",
+    "gulp-size": "^0.3.1",
+    "vinyl-source-stream": "^0.1.1",
+    "vinyl-buffer": "0.0.0",
+    "browserify": "^4.1.6"
   }
 }

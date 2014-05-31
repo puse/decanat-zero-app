@@ -21,7 +21,9 @@ ajax('/users/', {})
 
 (check: superagent)
 
+```
 
+```
 
 
 router
@@ -47,19 +49,23 @@ page('/users/:id', parseUser);
 
 1. how to document usage of `.use` like:
     - route middleware - `.use(function(ctx, scn, next){ .. })` 
-    - plugin - 
     `.use({ a: 1, __decanat: function(app){ app.a = this.a * 4; } })` 
+
+    - mixin function  
+
 
     ```
         function MyPlugin(){
-            var hash = Math.random() * 1000 | 0;
+            var hash = Math.random() * 10000 | 0;
             return {
                 __decanat: function(app) {
                     app.getToken = function(){
-                        var token = 't:'+
-                        return 't:' +
+                        return 't:' + hash;
                     }; // returns 't:'
                 }
             }
         };
     ```
+
+    ```
+    function(MyPlugin())
