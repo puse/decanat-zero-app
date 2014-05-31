@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>application.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>application.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">var</span> _		= require(<span class="string">'lodash'</span>);
+
+<span class="keyword">var</span> Route   = require(<span class="string">'./primitives/route.js'</span>),
+    Scene   = require(<span class="string">'./primitives/scene.js'</span>),
+    View	= require(<span class="string">'./primitives/view.js'</span>);
+
+<span class="keyword">var</span> app = {};
+
+app.init = <span class="keyword">function</span>(){
+	<span class="keyword">this</span>.cache = {};
+	<span class="keyword">this</span>.settings = {};
+	<span class="keyword">this</span>.defaultConfiguration();
+};
+
+app.defaultConfiguration = <span class="keyword">function</span>(){</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>setup locals</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">this</span>.locals = Object.create(<span class="literal">null</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>default locals</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">this</span>.locals.settings = <span class="keyword">this</span>.settings;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    app.on(<span class="string">'mounted'</span>, <span class="keyword">function</span>(path){
+        <span class="keyword">this</span>.base(path);
+        <span class="keyword">this</span>.stopListening();
+    });
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <hr>
+<h1>Routing</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Collection to store callbacks for each route handler</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">var</span> routeCallbacks = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Perform initial dispatch.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">var</span> dispatch = <span class="literal">true</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p><code>running</code> flag.
+Falsy by default, gets <code>true</code> when started, 
+and <code>false</code> when mounted, 
+so inspection will take place only on root instance of application</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">var</span> running;
+
+<span class="comment">/**
+ * Mount path
+ * @type {String}
+ */</span>
+<span class="keyword">var</span> mountpath = <span class="string">''</span>;
+
+<span class="comment">/**
+ * [all description]
+ * @param  {[type]}   path [description]
+ * @param  {Function} fn   [description]
+ * @return {[type]}        [description]
+ */</span>
+
+app.all = <span class="keyword">function</span>(path, fn){
+    <span class="keyword">var</span> args = _.rest(arguments);
+
+    <span class="keyword">if</span> (<span class="string">'function'</span> === <span class="keyword">typeof</span> path) {
+		args.unshift(path);
+        path = <span class="string">'*'</span>;
+    }
+
+    <span class="keyword">var</span> route = <span class="keyword">new</span> Route(path);
+
+    <span class="keyword">if</span> (args.length === <span class="number">1</span>) <span class="keyword">return</span> register(fn);
+
+    _.forEach(args, register);
+
+    <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">(fn)</span> {</span>
+    	routeCallbacks.push(route.middleware(fn));
+    }
+};
+
+
+<span class="comment">/**
+ * Get or set mountpath to `path`.
+ *
+ * @param {String} path
+ * @api public
+ */</span>
+
+app.base = <span class="keyword">function</span>(path){
+
+    <span class="keyword">if</span> (<span class="number">0</span> == arguments.length) {
+        <span class="keyword">var</span> root = <span class="keyword">this</span>.master 
+                ? <span class="keyword">this</span>.master.base() 
+                : <span class="string">''</span>;
+        <span class="keyword">return</span> root + mountpath;
+    }
+
+    mountpath = path;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Bind with the given <code>options</code>.</p>
+<p>Options:</p>
+<ul>
+<li><code>click</code> bind to click events [true]</li>
+<li><code>popstate</code> bind to popstate [true]</li>
+<li><code>dispatch</code> perform initial dispatch [true]</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>app.listen = <span class="keyword">function</span>(options){
+    options = options || {};
+    <span class="keyword">if</span> (running) <span class="keyword">return</span>;
+    running = <span class="literal">true</span>;
+    <span class="keyword">if</span> (<span class="literal">false</span> === options.dispatch) dispatch = <span class="literal">false</span>;
+    
+    <span class="keyword">if</span> (options.popstate) window.addEventListener(<span class="string">'popstate'</span>, onpopstate, <span class="literal">false</span>);
+    <span class="keyword">if</span> (options.click) window.addEventListener(<span class="string">'click'</span>, onclick, <span class="literal">false</span>);
+
+    <span class="keyword">if</span> (!dispatch) <span class="keyword">return</span>;
+    <span class="keyword">var</span> url = location.pathname + location.search + location.hash;
+    <span class="keyword">this</span>.replace(url, <span class="literal">null</span>, <span class="literal">true</span>, dispatch);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Unbind click and popstate event handlers.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>app.stopListening = <span class="keyword">function</span>(){
+    running = <span class="literal">false</span>;
+
+    window.removeEventListener(<span class="string">'popstate'</span>, onpopstate);
+    window.removeEventListener(<span class="string">'click'</span>, onclick);
+};
+
+<span class="comment">/**
+ * Show `path` with optional `state` object.
+ *
+ * @param {String} path
+ * @param {Object} state
+ * @param {Boolean} dispatch
+ * @return {Context}
+ * @api public
+ */</span>
+
+app.show = <span class="keyword">function</span>(path, state, dispatch){
+    <span class="keyword">var</span> ctx = <span class="keyword">new</span> Context(path, state),
+        scn = <span class="keyword">new</span> Scene(<span class="literal">null</span>, <span class="keyword">this</span>);
+
+    <span class="keyword">if</span> (<span class="literal">false</span> !== dispatch) <span class="keyword">this</span>.dispatch(ctx, scn);
+    <span class="keyword">if</span> (!ctx.unhandled) ctx.pushState();
+
+    <span class="keyword">return</span> ctx;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Helper for redirections</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>app.location = <span class="keyword">function</span>(path, stop) {
+    <span class="keyword">if</span> (!stop) <span class="keyword">return</span> <span class="keyword">this</span>.show(path);
+
+    <span class="keyword">this</span>.stopListening();
+    window.location = path;
+};
+
+
+<span class="comment">/**
+ * Replace `path` with optional `state` object.
+ *
+ * @param {String} path
+ * @param {Object} state
+ * @return {Context}
+ * @api public
+ */</span>
+
+app.replace = <span class="keyword">function</span>(path, state, init, dispatch){
+    <span class="keyword">var</span> ctx = <span class="keyword">new</span> Context(path, state),
+        scn = <span class="keyword">new</span> Scene(<span class="literal">null</span>, <span class="keyword">this</span>);
+
+    ctx.init = init;
+
+    <span class="keyword">if</span> (<span class="literal">null</span> == dispatch) dispatch = <span class="literal">true</span>;
+    <span class="keyword">if</span> (dispatch) <span class="keyword">this</span>.dispatch(ctx, scn);
+    
+    ctx.save();
+    
+    <span class="keyword">return</span> ctx;
+};
+
+<span class="comment">/**
+ * Dispatch the given `ctx`.
+ *
+ * @param {Object} ctx
+ * @api private
+ */</span>
+
+app.dispatch = <span class="keyword">function</span>(ctx, scn){
+    <span class="keyword">var</span> i = <span class="number">0</span>;
+
+    <span class="function"><span class="keyword">function</span> <span class="title">next</span><span class="params">(err)</span> {</span>
+        <span class="keyword">var</span> fn = routeCallbacks[i++];
+        <span class="keyword">if</span> (!fn) <span class="keyword">return</span> unhandled(ctx, scn);
+        fn(ctx, scn, next);
+    }
+
+    next();
+
+    <span class="keyword">var</span> path = ctx.canonicalPath;
+
+    _.each(mounted, <span class="keyword">function</span>(mPath, mApp) {
+        <span class="keyword">if</span> (mPath starts <span class="keyword">with</span> path) mApp.show(mPath, sct.state, <span class="literal">true</span>);
+    });
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">var</span> mounted = [];
+
+app.use = <span class="keyword">function</span>(path, fn) {
+    <span class="keyword">var</span> slave;
+
+    <span class="keyword">if</span> (fn.dispatch) slave = fn;
+
+    <span class="keyword">if</span> (!slave) app.all(path, fn);
+
+    slave.master = <span class="keyword">this</span>;
+    slave.emit(<span class="string">'mounted'</span>, path);
+
+    mounted.push(slave);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h2>Context</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Initialize a new &quot;request&quot; <code>Context</code>
+with the given <code>path</code> and optional initial <code>state</code></p>
+<p>Given <code>path</code> is &quot;canonical&quot; path,
+which internally transforms based on mounted path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="keyword">function</span> <span class="title">Context</span><span class="params">(path, state)</span> {</span>
+    <span class="keyword">var</span> base = <span class="keyword">this</span>.base();
+
+    <span class="keyword">if</span> (<span class="string">'/'</span> == path[<span class="number">0</span>] &amp;&amp; <span class="number">0</span> != path.indexOf(base)) path = base + path;
+    <span class="keyword">var</span> i = path.indexOf(<span class="string">'?'</span>);
+
+    <span class="keyword">this</span>.canonicalPath = path;
+    <span class="keyword">this</span>.path = path.replace(base, <span class="string">''</span>) || <span class="string">'/'</span>;
+
+    <span class="keyword">this</span>.title = document.title;
+    <span class="keyword">this</span>.state = state || {};
+    <span class="keyword">this</span>.state.path = path;
+    <span class="keyword">this</span>.querystring = ~i ? path.slice(i + <span class="number">1</span>) : <span class="string">''</span>;
+    <span class="keyword">this</span>.pathname = ~i ? path.slice(<span class="number">0</span>, i) : path;
+    <span class="keyword">this</span>.params = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>fragment</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">this</span>.hash = <span class="string">''</span>;
+    <span class="keyword">if</span> (!~<span class="keyword">this</span>.path.indexOf(<span class="string">'#'</span>)) <span class="keyword">return</span>;
+    <span class="keyword">var</span> parts = <span class="keyword">this</span>.path.split(<span class="string">'#'</span>);
+    <span class="keyword">this</span>.path = parts[<span class="number">0</span>];
+    <span class="keyword">this</span>.hash = parts[<span class="number">1</span>] || <span class="string">''</span>;
+    <span class="keyword">this</span>.querystring = <span class="keyword">this</span>.querystring.split(<span class="string">'#'</span>)[<span class="number">0</span>];
+}
+
+
+<span class="comment">/**
+ * Push state.
+ *
+ * @api private
+ */</span>
+
+Context.prototype.pushState = <span class="keyword">function</span>(){
+    history.pushState(<span class="keyword">this</span>.state, <span class="keyword">this</span>.title, <span class="keyword">this</span>.canonicalPath);
+};
+
+<span class="comment">/**
+ * Save the context state.
+ *
+ * @api public
+ */</span>
+
+Context.prototype.save = <span class="keyword">function</span>(){
+    history.replaceState(<span class="keyword">this</span>.state, <span class="keyword">this</span>.title, <span class="keyword">this</span>.canonicalPath);
+};
+
+
+
+<span class="comment">/**
+ * Unhandled `ctx`. When it's not the initial
+ * popstate then redirect. If you wish to handle
+ * 404s on your own use `page('*', callback)`.
+ *
+ * @param {Context} ctx
+ * @api private
+ */</span>
+
+<span class="function"><span class="keyword">function</span> <span class="title">unhandled</span><span class="params">(ctx, scn)</span> {</span>
+    <span class="keyword">var</span> current = window.location.pathname + window.location.search;
+    <span class="keyword">if</span> (current == ctx.canonicalPath) <span class="keyword">return</span>;
+    app.stopListening();
+    ctx.unhandled = <span class="literal">true</span>;
+    window.location = ctx.canonicalPath;
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <h2>Event delegation</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Handle &quot;populate&quot; events.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="keyword">function</span> <span class="title">onpopstate</span><span class="params">(e)</span> {</span>
+    <span class="keyword">if</span> (e.state) {
+        <span class="keyword">var</span> path = e.state.path;
+        app.replace(path, e.state);
+    }
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Handle &quot;click&quot; events.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="function"><span class="keyword">function</span> <span class="title">onclick</span><span class="params">(e)</span> {</span>
+    <span class="keyword">if</span> (<span class="number">1</span> != which(e)) <span class="keyword">return</span>;
+    <span class="keyword">if</span> (e.metaKey || e.ctrlKey || e.shiftKey) <span class="keyword">return</span>;
+    <span class="keyword">if</span> (e.defaultPrevented) <span class="keyword">return</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>ensure link</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">var</span> el = e.target;
+    <span class="keyword">while</span> (el &amp;&amp; <span class="string">'A'</span> != el.nodeName) el = el.parentNode;
+    <span class="keyword">if</span> (!el || <span class="string">'A'</span> != el.nodeName) <span class="keyword">return</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>ensure non-hash for the same path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">var</span> link = el.getAttribute(<span class="string">'href'</span>);
+    <span class="keyword">if</span> (el.pathname == location.pathname &amp;&amp; (el.hash || <span class="string">'#'</span> == link)) <span class="keyword">return</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Check for mailto: in the href</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">if</span> (link.indexOf(<span class="string">"mailto:"</span>) &gt; -<span class="number">1</span>) <span class="keyword">return</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>check target</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">if</span> (el.target) <span class="keyword">return</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>x-origin</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">if</span> (!sameOrigin(el.href)) <span class="keyword">return</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>rebuild path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">var</span> path = el.pathname + el.search + (el.hash || <span class="string">''</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>same page</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">var</span> orig = path + el.hash;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>path = path.replace(base, &#39;&#39;);
+if (base &amp;&amp; orig == path) return;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    e.preventDefault();
+    app.show(orig);
+}
+
+<span class="comment">/**
+ * Event button.
+ */</span>
+
+<span class="function"><span class="keyword">function</span> <span class="title">which</span><span class="params">(e)</span> {</span>
+    e = e || window.event;
+    <span class="keyword">return</span> <span class="literal">null</span> == e.which
+        ? e.button
+        : e.which;
+}
+
+<span class="comment">/**
+ * Check if `href` is the same origin.
+ */</span>
+
+<span class="function"><span class="keyword">function</span> <span class="title">sameOrigin</span><span class="params">(href)</span> {</span>
+    <span class="keyword">var</span> origin = location.protocol + <span class="string">'//'</span> + location.hostname;
+    <span class="keyword">if</span> (location.port) origin += <span class="string">':'</span> + location.port;
+    <span class="keyword">return</span> <span class="number">0</span> == href.indexOf(origin);
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="keyword">var</span> viewsCollection = {};
+
+app.engine = <span class="keyword">function</span>(alias, fn){
+	<span class="keyword">var</span> Viewport = getView(proto);
+
+	viewsCollection[alias] = <span class="keyword">new</span> Viewport();
+
+	<span class="function"><span class="keyword">function</span> <span class="title">getView</span><span class="params">(proto)</span> {</span>
+		<span class="keyword">if</span> (_.isFunction(proto)) {
+			<span class="keyword">return</span> proto.call(<span class="keyword">this</span>, View);
+		} 
+
+		proto = proto || {};
+		<span class="keyword">return</span> View.extend(proto);
+	}
+
+	<span class="keyword">return</span> viewsCollection[alias];
+};
+
+
+app.render = <span class="keyword">function</span>(alias, data, fn) {
+	<span class="keyword">var</span> view = viewsCollection[alias] || <span class="keyword">this</span>.engine(alias);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>support callback function as second arg</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (_.isFunction(data)) {
+		fn = data, data = {};
+	}
+
+	data &amp;&amp; data.locals = _.extend({}, <span class="keyword">this</span>.locals, data.locals);
+
+	<span class="keyword">try</span> {
+		view.render(data, fn);
+	} <span class="keyword">catch</span> (err) { }
+
+	<span class="keyword">return</span> <span class="keyword">this</span>;
+};</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

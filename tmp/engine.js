@@ -105,3 +105,48 @@ function init(el) {
 
 	return this;	
 }
+
+
+/*
+
+// * * *
+
+var viewsCollection = {};
+
+app.engine = function(alias, fn){
+	var Viewport = getView(proto);
+
+	viewsCollection[alias] = new Viewport();
+
+	function getView(proto) {
+		if (_.isFunction(proto)) {
+			return proto.call(this, View);
+		} 
+
+		proto = proto || {};
+		return View.extend(proto);
+	}
+
+	return viewsCollection[alias];
+};
+
+
+app.render = function(alias, data, fn) {
+	var view = viewsCollection[alias] || this.engine(alias);
+
+	// support callback function as second arg
+	if (_.isFunction(data)) {
+		fn = data, data = {};
+	}
+
+	data && data.locals = _.extend({}, this.locals, data.locals);
+
+	try {
+		view.render(data, fn);
+	} catch (err) { }
+
+	return this;
+};
+
+
+ */
