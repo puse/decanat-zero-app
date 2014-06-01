@@ -101,7 +101,11 @@ describe('App', function() {
                 app2 = Decanat();
 
             app2.all('/test', function(ctx, vp){
-                console.log(ctx.path, ctx.canonicalPath);
+                expect(ctx.path).to.equal('/test');
+                expect(ctx.canonicalPath).to.equal('/blog/test');
+
+                app1.show('/');
+
                 done();
             });
 
@@ -112,5 +116,65 @@ describe('App', function() {
             app1.show('/blog/test');
         });
 
+    });
+
+    describe('Rendering', function(){
+        var app;
+
+        before(function(){
+            app = Decanat();
+            app.container('#container');
+            app.listen();
+        });
+
+        it('Show have valid container', function(){
+            var container = app.container();
+            expect(container).to.be.ok;
+        });
+
+        it('Shoud register a scene', function(done){
+            app.register('test', function(View){
+                return View.extend({
+                    id: 'test',
+                    initialize: function(options, app){
+                        this.app = app;
+                        this._appendElement();
+                        this.delegate();
+                        return this;
+                    },
+                    template: '<h1> <%= title %> </h1>'
+                });
+            });
+
+            app.all('/test', function(ctx, vp, next){
+                vp.render('test', { title: 'Title' }, done);
+            });
+
+            app.show('/test');
+        });
+
+        it('Shoud render/show correct scene', function(done){
+            app.register('blog', {
+                id: 'blog',
+                initialize: function(options, app){
+                    this.app = app;
+                    this._appendElement();
+                    this.delegate();
+                    return this;
+                },
+                template: '<h2> <%= title %> </h2> <p> <%= content %> </p>'
+            });
+
+            app.all('/blog', function(ctx, vp){
+                vp.render('blog', { title: 'Post', content: 'Hello Region' }, done);
+            });
+
+            app.show('/blog');
+        });
+
+        after(function(){
+            app.show('/');
+            app.stopListening();
+        });
     });
 });
